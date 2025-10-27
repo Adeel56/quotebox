@@ -1,8 +1,9 @@
-package models
+package unit
 
 import (
 	"testing"
 
+	"github.com/Adeel56/quotebox/internal/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +23,7 @@ func TestIsValidTag(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := IsValidTag(tt.tag)
+			result := models.IsValidTag(tt.tag)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -42,7 +43,7 @@ func TestGetTagSource(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := GetTagSource(tt.tag)
+			result := models.GetTagSource(tt.tag)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -50,14 +51,14 @@ func TestGetTagSource(t *testing.T) {
 
 func TestValidTagsCount(t *testing.T) {
 	// Ensure we have between 20-30 tags as specified
-	assert.GreaterOrEqual(t, len(ValidTags), 20, "Should have at least 20 tags")
-	assert.LessOrEqual(t, len(ValidTags), 30, "Should have at most 30 tags")
+	assert.GreaterOrEqual(t, len(models.ValidTags), 20, "Should have at least 20 tags")
+	assert.LessOrEqual(t, len(models.ValidTags), 30, "Should have at most 30 tags")
 }
 
 func TestValidTagsUniqueness(t *testing.T) {
 	// Ensure all tags are unique
 	tagMap := make(map[string]bool)
-	for _, tag := range ValidTags {
+	for _, tag := range models.ValidTags {
 		assert.False(t, tagMap[tag], "Tag %s appears more than once", tag)
 		tagMap[tag] = true
 	}

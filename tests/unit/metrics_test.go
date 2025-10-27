@@ -1,8 +1,9 @@
-package metrics
+package unit
 
 import (
 	"testing"
 
+	"github.com/Adeel56/quotebox/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
@@ -10,60 +11,60 @@ import (
 
 func TestRecordQuoteFetched(t *testing.T) {
 	// Reset metrics before test
-	QuotesFetchedTotal = prometheus.NewCounter(prometheus.CounterOpts{
+	metrics.QuotesFetchedTotal = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "quotes_fetched_total_test",
 	})
-	QuotesByTag = prometheus.NewCounterVec(prometheus.CounterOpts{
+	metrics.QuotesByTag = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "quotes_by_tag_test",
 	}, []string{"tag"})
 
 	tag := "joy"
-	RecordQuoteFetched(tag)
+	metrics.RecordQuoteFetched(tag)
 
 	// Verify counter was incremented
-	count := testutil.ToFloat64(QuotesFetchedTotal)
+	count := testutil.ToFloat64(metrics.QuotesFetchedTotal)
 	assert.Equal(t, float64(1), count)
 }
 
 func TestRecordQuoteError(t *testing.T) {
 	// Reset metrics before test
-	QuoteFetchErrorsTotal = prometheus.NewCounter(prometheus.CounterOpts{
+	metrics.QuoteFetchErrorsTotal = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "quote_fetch_errors_total_test",
 	})
 
-	RecordQuoteError()
+	metrics.RecordQuoteError()
 
-	count := testutil.ToFloat64(QuoteFetchErrorsTotal)
+	count := testutil.ToFloat64(metrics.QuoteFetchErrorsTotal)
 	assert.Equal(t, float64(1), count)
 }
 
 func TestSetOpenRouterStatus(t *testing.T) {
 	// Reset metric before test
-	OpenRouterUp = prometheus.NewGauge(prometheus.GaugeOpts{
+	metrics.OpenRouterUp = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "openrouter_up_test",
 	})
 
 	// Test setting to up
-	SetOpenRouterStatus(true)
-	assert.Equal(t, float64(1), testutil.ToFloat64(OpenRouterUp))
+	metrics.SetOpenRouterStatus(true)
+	assert.Equal(t, float64(1), testutil.ToFloat64(metrics.OpenRouterUp))
 
 	// Test setting to down
-	SetOpenRouterStatus(false)
-	assert.Equal(t, float64(0), testutil.ToFloat64(OpenRouterUp))
+	metrics.SetOpenRouterStatus(false)
+	assert.Equal(t, float64(0), testutil.ToFloat64(metrics.OpenRouterUp))
 }
 
 func TestRecordLatency(t *testing.T) {
 	// Reset metric before test
-	QuoteFetchLatency = prometheus.NewHistogram(prometheus.HistogramOpts{
+	metrics.QuoteFetchLatency = prometheus.NewHistogram(prometheus.HistogramOpts{
 		Name:    "quote_fetch_latency_seconds_test",
 		Buckets: prometheus.DefBuckets,
 	})
 
-	RecordLatency(0.5)
-	RecordLatency(1.0)
-	RecordLatency(2.0)
+	metrics.RecordLatency(0.5)
+	metrics.RecordLatency(1.0)
+	metrics.RecordLatency(2.0)
 
 	// Verify histogram has observations
-	count := testutil.ToFloat64(QuoteFetchLatency)
+	count := testutil.ToFloat64(metrics.QuoteFetchLatency)
 	assert.Equal(t, float64(3), count)
 }
