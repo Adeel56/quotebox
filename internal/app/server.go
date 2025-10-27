@@ -95,7 +95,7 @@ func (s *Server) setupFrontend(router *gin.Engine) {
 
 	// Serve embedded files
 	router.GET("/", func(c *gin.Context) {
-		data, err := frontendSubFS.ReadFile("index_new.html")
+		data, err := fs.ReadFile(frontendSubFS, "index_new.html")
 		if err != nil {
 			// Fallback to old index
 			c.FileFromFS("/index.html", http.FS(frontendSubFS))
