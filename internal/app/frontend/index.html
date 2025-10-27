@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuoteBox - AI-Powered Quote Generator</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 QuoteBox</h1>
+            <p class="subtitle">Generate inspiring quotes based on your emotions</p>
+        </header>
+
+        <main>
+            <section class="generator-section">
+                <h2>Generate a Quote</h2>
+                <form id="quote-form">
+                    <div class="form-group">
+                        <label for="tag-select">Select an emotion tag:</label>
+                        <select id="tag-select" name="tag">
+                            <option value="">-- Select a tag --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="custom-tag">Or enter a custom tag:</label>
+                        <input 
+                            type="text" 
+                            id="custom-tag" 
+                            name="customTag" 
+                            placeholder="e.g., creativity, courage, peace..."
+                            maxlength="50"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requestor">Your name (optional):</label>
+                        <input 
+                            type="text" 
+                            id="requestor" 
+                            name="requestor" 
+                            placeholder="e.g., John Doe"
+                        >
+                    </div>
+
+                    <button type="submit" id="generate-btn">
+                        <span id="btn-text">Generate Quote</span>
+                        <span id="btn-loader" class="loader" style="display: none;"></span>
+                    </button>
+                </form>
+
+                <div id="error-message" class="error-message" style="display: none;"></div>
+                <div id="new-quote" class="new-quote" style="display: none;"></div>
+            </section>
+
+            <section class="quotes-section">
+                <h2>Recent Quotes</h2>
+                <div class="filter-controls">
+                    <label for="filter-tag">Filter by tag:</label>
+                    <select id="filter-tag">
+                        <option value="">-- All tags --</option>
+                    </select>
+                    <button id="refresh-btn" class="secondary-btn">🔄 Refresh</button>
+                </div>
+                <div id="quotes-list" class="quotes-list">
+                    <p class="loading">Loading quotes...</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://openrouter.ai" target="_blank">OpenRouter</a> | 
+               Built with Go, Gin, PostgreSQL, and ❤️</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
