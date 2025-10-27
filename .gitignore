@@ -40,3 +40,6 @@ temp/
 pgdata/
 prometheus-data/
 grafana-data/
+
+# Ignore documentation (non-code files)
+docs/
