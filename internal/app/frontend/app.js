@@ -1,265 +1,203 @@
-// API Base URL
-const API_BASE = '/api/v1';
+// Theme Management
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
 
-// State
-let availableTags = [];
-
-// Initialize app
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     loadTags();
-    loadQuotes();
     setupEventListeners();
 });
 
-// Setup event listeners
-function setupEventListeners() {
-    const form = document.getElementById('quote-form');
-    const tagSelect = document.getElementById('tag-select');
-    const customTag = document.getElementById('custom-tag');
-    const filterTag = document.getElementById('filter-tag');
-    const refreshBtn = document.getElementById('refresh-btn');
+document.getElementById('themeToggle').addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+});
 
-    form.addEventListener('submit', handleGenerateQuote);
-    
-    tagSelect.addEventListener('change', () => {
-        if (tagSelect.value) {
-            customTag.value = '';
-        }
-    });
-
-    customTag.addEventListener('input', () => {
-        if (customTag.value) {
-            tagSelect.value = '';
-        }
-    });
-
-    filterTag.addEventListener('change', () => {
-        loadQuotes(filterTag.value);
-    });
-
-    refreshBtn.addEventListener('click', () => {
-        loadQuotes(filterTag.value);
-    });
-}
-
-// Load available tags
+// Load emotion tags
 async function loadTags() {
     try {
-        const response = await fetch(`${API_BASE}/tags`);
+        const response = await fetch('/api/v1/tags');
         const data = await response.json();
         
-        availableTags = data.tags || [];
-        
-        const tagSelect = document.getElementById('tag-select');
-        const filterTag = document.getElementById('filter-tag');
-        
-        availableTags.forEach(tag => {
-            const option1 = document.createElement('option');
-            option1.value = tag;
-            option1.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-            tagSelect.appendChild(option1);
-            
-            const option2 = document.createElement('option');
-            option2.value = tag;
-            option2.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-            filterTag.appendChild(option2);
+        const select = document.getElementById('emotionSelect');
+        data.tags.forEach(tag => {
+            const option = document.createElement('option');
+            option.value = tag;
+            option.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+            select.appendChild(option);
         });
     } catch (error) {
         console.error('Error loading tags:', error);
-        showError('Failed to load tags');
+        showNotification('Failed to load emotion tags', 'error');
     }
 }
 
-// Handle quote generation
-async function handleGenerateQuote(e) {
-    e.preventDefault();
+// Setup event listeners
+function setupEventListeners() {
+    const form = document.getElementById('quoteForm');
+    const emotionSelect = document.getElementById('emotionSelect');
+    const customTag = document.getElementById('customTag');
     
-    const tagSelect = document.getElementById('tag-select');
-    const customTag = document.getElementById('custom-tag');
-    const requestor = document.getElementById('requestor');
+    // Clear custom input when emotion is selected
+    emotionSelect.addEventListener('change', () => {
+        if (emotionSelect.value) {
+            customTag.value = '';
+        }
+    });
     
-    const tag = tagSelect.value || customTag.value.trim();
+    // Clear emotion select when custom input is typed
+    customTag.addEventListener('input', () => {
+        if (customTag.value) {
+            emotionSelect.value = '';
+        }
+    });
     
-    if (!tag) {
-        showError('Please select or enter a tag');
-        return;
-    }
-    
-    if (tag.length > 50) {
-        showError('Tag must be 50 characters or less');
-        return;
-    }
-    
-    const generateBtn = document.getElementById('generate-btn');
-    const btnText = document.getElementById('btn-text');
-    const btnLoader = document.getElementById('btn-loader');
-    
-    // Show loading state
-    generateBtn.disabled = true;
-    btnText.style.display = 'none';
-    btnLoader.style.display = 'inline-block';
-    hideError();
-    hideNewQuote();
-    
-    try {
-        const response = await fetch(`${API_BASE}/quote`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                tag: tag,
-                requestor: requestor.value.trim() || undefined,
-            }),
-        });
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        const data = await response.json();
+        const emotion = emotionSelect.value;
+        const custom = customTag.value.trim();
         
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to generate quote');
+        if (!emotion && !custom) {
+            showNotification('Please select an emotion or enter a custom tag', 'error');
+            return;
         }
         
-        // Show the new quote
-        showNewQuote(data);
-        
-        // Reload quotes list
-        setTimeout(() => {
-            loadQuotes();
-        }, 500);
-        
-        // Reset form
-        tagSelect.value = '';
-        customTag.value = '';
-        
-    } catch (error) {
-        console.error('Error generating quote:', error);
-        showError(error.message || 'Failed to generate quote. Please try again.');
-    } finally {
-        // Reset button state
-        generateBtn.disabled = false;
-        btnText.style.display = 'inline';
-        btnLoader.style.display = 'none';
-    }
-}
-
-// Load quotes from API
-async function loadQuotes(tag = '') {
-    const quotesList = document.getElementById('quotes-list');
-    quotesList.innerHTML = '<p class="loading">Loading quotes...</p>';
-    
-    try {
-        const url = tag 
-            ? `${API_BASE}/quotes?tag=${encodeURIComponent(tag)}&limit=20`
-            : `${API_BASE}/quotes?limit=20`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error('Failed to load quotes');
-        }
-        
-        displayQuotes(data.quotes || []);
-    } catch (error) {
-        console.error('Error loading quotes:', error);
-        quotesList.innerHTML = '<p class="error">Failed to load quotes. Please try again.</p>';
-    }
-}
-
-// Display quotes in the list
-function displayQuotes(quotes) {
-    const quotesList = document.getElementById('quotes-list');
-    
-    if (quotes.length === 0) {
-        quotesList.innerHTML = '<p class="no-quotes">No quotes found. Generate your first quote!</p>';
-        return;
-    }
-    
-    quotesList.innerHTML = '';
-    
-    quotes.forEach(quote => {
-        const quoteCard = createQuoteCard(quote);
-        quotesList.appendChild(quoteCard);
+        const tag = emotion || custom;
+        await generateQuote(tag);
     });
 }
 
-// Create a quote card element
-function createQuoteCard(quote) {
-    const card = document.createElement('div');
-    card.className = 'quote-card';
-    
-    const quoteText = document.createElement('p');
-    quoteText.className = 'quote-text';
-    quoteText.textContent = `"${quote.quote}"`;
-    
-    const quoteMeta = document.createElement('div');
-    quoteMeta.className = 'quote-meta';
-    
-    const tag = document.createElement('span');
-    tag.className = 'quote-tag';
-    tag.textContent = quote.tag;
-    
-    const date = document.createElement('span');
-    date.className = 'quote-date';
-    date.textContent = formatDate(quote.created_at);
-    
-    quoteMeta.appendChild(tag);
-    quoteMeta.appendChild(date);
-    
-    card.appendChild(quoteText);
-    card.appendChild(quoteMeta);
-    
-    return card;
+// Generate quote
+async function generateQuote(tag) {
+    try {
+        const btn = document.querySelector('.btn-primary');
+        btn.disabled = true;
+        btn.textContent = 'Generating...';
+        
+        const response = await fetch('/api/v1/quote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tag })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to generate quote');
+        }
+        
+        const quote = await response.json();
+        displayQuote(quote);
+        addToHistory(quote);
+        showNotification('Quote generated successfully!', 'success');
+        
+    } catch (error) {
+        console.error('Error generating quote:', error);
+        showNotification('Failed to generate quote', 'error');
+    } finally {
+        const btn = document.querySelector('.btn-primary');
+        btn.disabled = false;
+        btn.textContent = 'Generate Quote';
+    }
 }
 
-// Show new quote in highlighted section
-function showNewQuote(quote) {
-    const newQuoteDiv = document.getElementById('new-quote');
-    newQuoteDiv.innerHTML = `
-        <h3>✨ Your New Quote</h3>
-        <p class="quote-text">"${quote.quote}"</p>
-        <div class="quote-meta">
-            <span class="quote-tag">${quote.tag}</span>
-            <span class="quote-source">Generated by ${quote.source}</span>
+// Display quote
+function displayQuote(quote) {
+    const display = document.getElementById('quoteDisplay');
+    const tag = quote.tag || 'Unknown';
+    const text = quote.quote || quote.quote_text || quote.text || 'No quote available';
+    const author = quote.author || 'Unknown';
+    const source = quote.source || '';
+    
+    display.innerHTML = `
+        <div class="quote-content">
+            <span class="quote-tag">${tag}</span>
+            <blockquote class="quote-text">"${text}"</blockquote>
+            <div class="quote-author">— ${author}</div>
+            ${source ? `<div class="quote-source">${source}</div>` : ''}
+            <div class="quote-actions">
+                <button class="btn-secondary" onclick="copyQuote('${text.replace(/'/g, "\\'")}', '${author.replace(/'/g, "\\'")}')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copy
+                </button>
+                <button class="btn-secondary" onclick="shareQuote('${text.replace(/'/g, "\\'")}', '${author.replace(/'/g, "\\'")}')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    Share
+                </button>
+            </div>
         </div>
     `;
-    newQuoteDiv.style.display = 'block';
 }
 
-// Hide new quote section
-function hideNewQuote() {
-    const newQuoteDiv = document.getElementById('new-quote');
-    newQuoteDiv.style.display = 'none';
+// Add to history
+function addToHistory(quote) {
+    const historyList = document.getElementById('historyList');
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    
+    const tag = quote.tag || 'Unknown';
+    const text = quote.quote || quote.quote_text || quote.text || 'No quote available';
+    
+    item.innerHTML = `
+        <div class="tag">${tag}</div>
+        <div class="preview">${text}</div>
+    `;
+    
+    item.addEventListener('click', () => displayQuote(quote));
+    
+    historyList.insertBefore(item, historyList.firstChild);
+    
+    // Keep only last 10 items
+    while (historyList.children.length > 10) {
+        historyList.removeChild(historyList.lastChild);
+    }
 }
 
-// Show error message
-function showError(message) {
-    const errorDiv = document.getElementById('error-message');
-    errorDiv.textContent = message;
-    errorDiv.style.display = 'block';
+// Copy quote
+function copyQuote(text, author) {
+    const fullText = `"${text}" — ${author}`;
+    navigator.clipboard.writeText(fullText).then(() => {
+        showNotification('Quote copied to clipboard!', 'success');
+    }).catch(() => {
+        showNotification('Failed to copy quote', 'error');
+    });
 }
 
-// Hide error message
-function hideError() {
-    const errorDiv = document.getElementById('error-message');
-    errorDiv.style.display = 'none';
+// Share quote
+function shareQuote(text, author) {
+    const fullText = `"${text}" — ${author}`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'QuoteBox',
+            text: fullText,
+        }).catch(() => {
+            // User cancelled share
+        });
+    } else {
+        copyQuote(text, author);
+    }
 }
 
-// Format date to readable string
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
+// Show notification
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type} show`;
     
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-    
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    
-    return date.toLocaleDateString();
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
 }

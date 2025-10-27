@@ -62,8 +62,9 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "quotes_fetched_total",
-          "refId": "A"
+          "expr": "sum(quotes_fetched_total)",
+          "refId": "A",
+          "instant": true
         }
       ],
       "title": "Total Quotes Generated",
@@ -317,12 +318,14 @@
       "id": 5,
       "options": {
         "displayLabels": [
+          "name",
           "percent"
         ],
         "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": ["value", "percent"]
         },
         "pieType": "pie",
         "reduceOptions": {
@@ -339,7 +342,7 @@
       },
       "targets": [
         {
-          "expr": "topk(8, quotes_by_tag)",
+          "expr": "topk(10, sum by(tag) (quotes_by_tag))",
           "legendFormat": "{{tag}}",
           "refId": "A"
         }

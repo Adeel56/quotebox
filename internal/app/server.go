@@ -95,13 +95,33 @@ func (s *Server) setupFrontend(router *gin.Engine) {
 
 	// Serve embedded files
 	router.GET("/", func(c *gin.Context) {
-		data, err := fs.ReadFile(frontendSubFS, "index_new.html")
+		data, err := fs.ReadFile(frontendSubFS, "index.html")
 		if err != nil {
-			// Fallback to old index
-			c.FileFromFS("/index.html", http.FS(frontendSubFS))
+			log.Printf("Error reading index.html: %v", err)
+			c.String(http.StatusInternalServerError, "Error loading page")
 			return
 		}
 		c.Data(http.StatusOK, "text/html; charset=utf-8", data)
+	})
+
+	// Serve CSS
+	router.GET("/style.css", func(c *gin.Context) {
+		data, err := fs.ReadFile(frontendSubFS, "style.css")
+		if err != nil {
+			c.String(http.StatusNotFound, "CSS not found")
+			return
+		}
+		c.Data(http.StatusOK, "text/css; charset=utf-8", data)
+	})
+
+	// Serve JS
+	router.GET("/app.js", func(c *gin.Context) {
+		data, err := fs.ReadFile(frontendSubFS, "app.js")
+		if err != nil {
+			c.String(http.StatusNotFound, "JS not found")
+			return
+		}
+		c.Data(http.StatusOK, "application/javascript; charset=utf-8", data)
 	})
 
 	router.StaticFS("/static", http.FS(frontendSubFS))
