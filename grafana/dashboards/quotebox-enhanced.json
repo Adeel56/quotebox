@@ -342,12 +342,12 @@
       },
       "targets": [
         {
-          "expr": "topk(10, sum by(tag) (quotes_by_tag))",
+          "expr": "topk(7, sum by(tag) (quotes_by_tag))",
           "legendFormat": "{{tag}}",
           "refId": "A"
         }
       ],
-      "title": "Quote Distribution by Tag",
+      "title": "Quote Distribution by Tag (Top 7)",
       "type": "piechart"
     },
     {

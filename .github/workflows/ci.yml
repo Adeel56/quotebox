@@ -316,6 +316,8 @@ jobs:
           
           echo "✅ Railway deployment process initiated!"
           echo "📍 Check your Railway dashboard for deployment status"
+          echo "🌐 Your app will be available at: https://quotebox-production.up.railway.app"
+          echo "   (or your custom domain in Railway dashboard)"
 
       - name: Create deployment summary
         run: |

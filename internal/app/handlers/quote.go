@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -54,9 +55,10 @@ func (h *QuoteHandler) CreateQuote(c *gin.Context) {
 	var req CreateQuoteRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("Error parsing JSON: %v", err)
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Tag is required",
+			Message: fmt.Sprintf("Invalid JSON format: %v", err),
 		})
 		return
 	}
