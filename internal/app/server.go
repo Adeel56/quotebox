@@ -95,7 +95,13 @@ func (s *Server) setupFrontend(router *gin.Engine) {
 
 	// Serve embedded files
 	router.GET("/", func(c *gin.Context) {
-		c.FileFromFS("/", http.FS(frontendSubFS))
+		data, err := frontendSubFS.ReadFile("index_new.html")
+		if err != nil {
+			// Fallback to old index
+			c.FileFromFS("/index.html", http.FS(frontendSubFS))
+			return
+		}
+		c.Data(http.StatusOK, "text/html; charset=utf-8", data)
 	})
 
 	router.StaticFS("/static", http.FS(frontendSubFS))

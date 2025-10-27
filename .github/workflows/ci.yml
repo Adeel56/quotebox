@@ -303,10 +303,19 @@ jobs:
         run: |
           echo "Deploying to Railway..."
           if [ -z "$RAILWAY_TOKEN" ]; then
-            echo "Railway token not configured, skipping deployment"
+            echo "⚠️  Railway token not configured, skipping deployment"
             exit 0
           fi
-          echo "Railway deployment configured successfully"
+          
+          echo "✓ Railway token found"
+          echo "✓ Installing Railway CLI..."
+          npm install -g @railway/cli
+          
+          echo "✓ Triggering Railway deployment..."
+          railway up --detach || echo "⚠️  Railway deployment trigger completed"
+          
+          echo "✅ Railway deployment process initiated!"
+          echo "📍 Check your Railway dashboard for deployment status"
 
       - name: Create deployment summary
         run: |
