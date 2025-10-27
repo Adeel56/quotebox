@@ -49,7 +49,7 @@ jobs:
           echo "Build completed successfully"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quotebox-binary
           path: bin/quotebox
@@ -85,7 +85,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload security report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: gosec-report
           path: gosec-report.json
@@ -158,7 +158,7 @@ jobs:
           name: codecov-umbrella
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: |
@@ -235,7 +235,7 @@ jobs:
         run: docker save ${{ env.DOCKER_IMAGE }}:test | gzip > quotebox-image.tar.gz
 
       - name: Upload Docker image artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docker-image
           path: quotebox-image.tar.gz
