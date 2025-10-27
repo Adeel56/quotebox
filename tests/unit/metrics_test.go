@@ -60,11 +60,21 @@ func TestRecordLatency(t *testing.T) {
 		Buckets: prometheus.DefBuckets,
 	})
 
+	// Register the histogram for testing
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(metrics.QuoteFetchLatency)
+
 	metrics.RecordLatency(0.5)
 	metrics.RecordLatency(1.0)
 	metrics.RecordLatency(2.0)
 
-	// Verify histogram has observations
-	count := testutil.ToFloat64(metrics.QuoteFetchLatency)
-	assert.Equal(t, float64(3), count)
+	// Verify histogram has observations by checking the metric family
+	metricFamilies, err := reg.Gather()
+	assert.NoError(t, err)
+	assert.Len(t, metricFamilies, 1)
+	
+	// Check the histogram count
+	histogram := metricFamilies[0].GetMetric()[0].GetHistogram()
+	assert.Equal(t, uint64(3), histogram.GetSampleCount())
+	assert.Equal(t, float64(3.5), histogram.GetSampleSum())
 }
